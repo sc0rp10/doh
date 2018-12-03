@@ -618,7 +618,7 @@ struct dnsprobe {
 
 static int initprobe(struct dnsprobe *p, int dnstype, char *host,
                      const char *url, CURLM *multi, int trace_enabled,
-                     struct curl_slist *headers)
+                     struct curl_slist *headers, struct curl_slist *resolved_host_slist)
 {
   CURL *curl;
   p->dohlen = doh_encode(host, dnstype, p->dohbuffer, sizeof(p->dohbuffer));
@@ -664,6 +664,7 @@ static int initprobe(struct dnsprobe *p, int dnstype, char *host,
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
     curl_easy_setopt(curl, CURLOPT_PRIVATE, p);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_RESOLVE, resolved_host_slist);
     p->curl = curl;
 
     /* add the individual transfers */
@@ -687,7 +688,7 @@ static int initprobe(struct dnsprobe *p, int dnstype, char *host,
 static void help(void)
 {
   fprintf(stderr,
-          "Usage: doh [options] <host> [URL]\n"
+          "Usage: doh [options] <host> [URL] [resolved host]\n"
           "  -h  this help\n"
           "  -v  verbose mode\n");
   exit(0);
@@ -697,9 +698,11 @@ int main(int argc, char **argv)
 {
   CURLMsg *msg;
   struct curl_slist *headers;
+  struct curl_slist *resolved_host_slist;
   int trace_enabled = 0;
   int rc;
   const char *url = "https://dns.cloudflare.com/dns-query";
+  const char *resolved_host = "dns.cloudflare.com:443:104.19.198.29";
   char *host;
   struct dnsprobe probe[2];
   CURLM *multi;
@@ -729,9 +732,15 @@ int main(int argc, char **argv)
   }
   else
     help();
+
   host = argv[url_argc];
-  if(argc > 1 + url_argc)
+  if(argc > 1 + url_argc) {
     url = argv[url_argc + 1];
+  }
+
+  if(argc > 2 + url_argc) {
+    resolved_host = argv[url_argc + 2];
+  }
 
   curl_global_init(CURL_GLOBAL_ALL);
 
@@ -741,12 +750,14 @@ int main(int argc, char **argv)
   headers = curl_slist_append(headers,
                               "Accept: application/dns-message");
 
+  resolved_host_slist = curl_slist_append(NULL, resolved_host);
+
   /* init a multi stack */
   multi = curl_multi_init();
 
   doh_init(&d);
-  initprobe(&probe[0], DNS_TYPE_A, host, url, multi, trace_enabled, headers);
-  initprobe(&probe[1], DNS_TYPE_AAAA, host, url, multi, trace_enabled, headers);
+  initprobe(&probe[0], DNS_TYPE_A, host, url, multi, trace_enabled, headers, resolved_host_slist);
+  initprobe(&probe[1], DNS_TYPE_AAAA, host, url, multi, trace_enabled, headers, resolved_host_slist);
 
   /* we start some action by calling perform right away */
   curl_multi_perform(multi, &still_running);
