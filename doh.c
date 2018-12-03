@@ -810,7 +810,7 @@ int main(int argc, char **argv)
                             probe->dnstype, &d);
             if(rc) {
               if(rc == DOH_DNS_BAD_RCODE) {
-                printf("ERROR Host %s not found for %s\n",
+                printf("Host %s not found for %s\n",
                         host, type2name(probe->dnstype));
               }
               else {
