@@ -147,7 +147,7 @@ int my_trace(CURL *handle, curl_infotype type,
 
   switch(type) {
   case CURLINFO_TEXT:
-    fprintf(stderr, "== Info: %s", data);
+    printf("== Info: %s", data);
     /* FALLTHROUGH */
   default: /* in case a new one is introduced to shock us */
     return 0;
@@ -623,7 +623,7 @@ static int initprobe(struct dnsprobe *p, int dnstype, char *host,
   CURL *curl;
   p->dohlen = doh_encode(host, dnstype, p->dohbuffer, sizeof(p->dohbuffer));
   if(!p->dohlen) {
-    fprintf(stderr, "Failed to encode DOH packet\n");
+    printf("Failed to encode DOH packet\n");
     return 2;
   }
 
@@ -770,7 +770,7 @@ int main(int argc, char **argv)
     mc = curl_multi_wait(multi, NULL, 0, 1000, &numfds);
 
     if(mc != CURLM_OK) {
-      fprintf(stderr, "curl_multi_wait() failed, code %d.\n", mc);
+      printf("curl_multi_wait() failed, code %d.\n", mc);
       break;
     }
 
@@ -798,7 +798,7 @@ int main(int argc, char **argv)
 
         /* Check for errors */
         if(msg->data.result != CURLE_OK) {
-          fprintf(stderr, "probe for %s failed: %s\n", type2name(probe->dnstype),
+          printf("probe for %s failed: %s\n", type2name(probe->dnstype),
                   curl_easy_strerror(msg->data.result));
         }
         else {
@@ -810,11 +810,11 @@ int main(int argc, char **argv)
                             probe->dnstype, &d);
             if(rc) {
               if(rc == DOH_DNS_BAD_RCODE) {
-                fprintf(stderr, "Host %s not found for %s\n",
+                printf("Host %s not found for %s\n",
                         host, type2name(probe->dnstype));
               }
               else {
-                fprintf(stderr, "problem %d decoding %" FMT_SIZE_T
+                printf("problem %d decoding %" FMT_SIZE_T
                         " bytes response to probe for %s\n",
                         rc, probe->serverdoh.size, type2name(probe->dnstype));
               }
@@ -823,7 +823,7 @@ int main(int argc, char **argv)
               successful++;
           }
           else {
-            fprintf(stderr, "Probe for %s got response: %03ld\n",
+            printf("Probe for %s got response: %03ld\n",
                     type2name(probe->dnstype), response_code);
           }
           free(probe->serverdoh.memory);
