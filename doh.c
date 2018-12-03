@@ -757,7 +757,7 @@ int main(int argc, char **argv)
 
   doh_init(&d);
   initprobe(&probe[0], DNS_TYPE_A, host, url, multi, trace_enabled, headers, resolved_host_slist);
-  initprobe(&probe[1], DNS_TYPE_AAAA, host, url, multi, trace_enabled, headers, resolved_host_slist);
+  //initprobe(&probe[1], DNS_TYPE_AAAA, host, url, multi, trace_enabled, headers, resolved_host_slist);
 
   /* we start some action by calling perform right away */
   curl_multi_perform(multi, &still_running);
